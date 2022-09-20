@@ -16,7 +16,6 @@ const refs = {
 refs.inputEl.addEventListener('input', debounce(onCountrySearch, DEBOUNCE_DELAY));
 
 
-
 function onCountrySearch(e) {
 
     let searchValue = refs.inputEl.value.trim();
@@ -36,30 +35,26 @@ function onCountrySearch(e) {
 
 
 
-
 function onResponse(data) {
       if (data.length > 10) {
-          console.log('больше 10');
-          Notify.info('Too many matches found. Please enter a more specific name.');
+        messageInfo();
       } else if (data.length >= 2 & data.length <= 10) {
-          console.log('> 2');
           createMarkupList(data);
       } else {
-          console.log('= 1');
-          console.log('data', data);
-        const countryObj = data[0];
-          createMarkup(countryObj);       
+        // const countryObj = data[0];
+        createMarkup(data[0]);    
       }
   }
 
 function onError(error) {
     console.log(error);
-    Notify.failure('Oops, there is no country with that name');
+  messageFailure();
   resetMarkup(refs.countryListEl);
   resetMarkup(refs.countryInfoEl);
   // refs.countryListEl.innerHTML = "";
-  //   refs.countryInfoEl.innerHTML = "";
+  // refs.countryInfoEl.innerHTML = "";
 }
+
 
 function createMarkupList(countryList) {
   const markup =  countryList.map(({ name, flags}) => `<li class="card-item">
@@ -68,15 +63,15 @@ function createMarkupList(countryList) {
   </div>
     <p class="card-title">${name.official}</p>
   </li>`).join("")
- resetMarkup(refs.countryInfoEl);
+  resetMarkup(refs.countryInfoEl);
     // refs.countryInfoEl.innerHTML = "";
-    createMarkup(refs.countryListEl, markup);
+  insertMarkup(refs.countryListEl, markup);
     // refs.countryListEl.innerHTML = markup;
 }
 
 function createMarkup({ name, capital, population, flags, languages }) {
-    console.log('lang', lang);
-  const lang = Object.values(languages);
+  
+  // const lang = Object.values(languages);
     const markup = `<div class="card">
     <div class="card-img">
         <img src="${flags.svg}" alt="${name.official}">
@@ -85,12 +80,11 @@ function createMarkup({ name, capital, population, flags, languages }) {
         <h2 class="card-title">${name.official}</h2>
         <p class="card-text">Capital: ${capital}</p>
         <p class="card-text">Population: ${population}</p>
-        <p class="card-text">languages: ${lang}</p>
+        <p class="card-text">Languages: ${ Object.values(languages) }</p>
     </div>
     </div>`;
-   console.log('markup', markup);
   resetMarkup(refs.countryListEl);
-  createMarkup(refs.countryInfoEl, markup);
+  insertMarkup(refs.countryInfoEl, markup);
     // refs.countryInfoEl.innerHTML = markup;
 }
 
@@ -98,16 +92,14 @@ function createMarkup({ name, capital, population, flags, languages }) {
 function resetMarkup(elem) {
   elem.innerHTML = "";
 }
-function createMarkup(elem, markup) {
+function insertMarkup(elem, markup) {
   elem.innerHTML = markup;
 }
 
 
-//  https://restcountries.com/v2/all?fields=name.official,capital,population,flags.svg,languages
-
-// name.official - полное имя страны
-// capital - столица
-// population - население
-// flags.svg - ссылка на изображение флага
-// languages - массив языков
-   
+function messageFailure() {
+  Notify.failure('Oops, there is no country with that name', {timeout: 2000, width: '360px'});
+}
+function messageInfo() {
+    Notify.info('Too many matches found. Please enter a more specific name.', {timeout: 2000, width: '360px'});
+}
