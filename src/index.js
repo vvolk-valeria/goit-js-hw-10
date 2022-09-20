@@ -1,4 +1,5 @@
 import './css/styles.css';
+import { fetchCountries } from './fetchCountries';
 import debounce from 'lodash.debounce';
 import { Notify } from 'notiflix';
 
@@ -11,38 +12,30 @@ const refs = {
    countryInfoEl: document.querySelector('.country-info'),
 }
 
-refs.inputEl.addEventListener('input', onFunc);
-// refs.inputEl.addEventListener('input', debounce(onFunc, DEBOUNCE_DELAY));
+// refs.inputEl.addEventListener('input', onCountrySearch);
+refs.inputEl.addEventListener('input', debounce(onCountrySearch, DEBOUNCE_DELAY));
 
 
 
+function onCountrySearch(e) {
 
-function onFunc(e) {
-  
-    let searchValue = e.currentTarget.value;
+    let searchValue = refs.inputEl.value.trim();
+    // let searchValue = e.currentTarget.value.trim();
 
-    if (searchValue.length === 0) {
-    refs.countryListEl.innerHTML = "";
-    refs.countryInfoEl.innerHTML = "";
+  if (searchValue.length === 0) {
+    resetMarkup(refs.countryListEl);
+    resetMarkup(refs.countryInfoEl);
+    // refs.countryListEl.innerHTML = "";
+    // refs.countryInfoEl.innerHTML = "";
     } else {
-     fetchCountries(searchValue);       
+    fetchCountries(searchValue)
+      .then(onResponse)
+      .catch(onError);       
     }
 }
 
 
-function fetchCountries(name) {
 
-    // const url = `https://restcountries.com/v2/all?fields=${name.official},capital,population,flags.svg,languages`;
-    const url = `https://restcountries.com/v3.1/name/${name}`;
-    fetch(url).then(response => {
-    if (!response.ok) {
-      throw new Error(response.status);
-    }
-    return response.json();
-  })
-  .then(onResponse)
-  .catch(onError);
-}
 
 function onResponse(data) {
       if (data.length > 10) {
@@ -54,7 +47,7 @@ function onResponse(data) {
       } else {
           console.log('= 1');
           console.log('data', data);
-          const countryObj = data[0];
+        const countryObj = data[0];
           createMarkup(countryObj);       
       }
   }
@@ -62,23 +55,28 @@ function onResponse(data) {
 function onError(error) {
     console.log(error);
     Notify.failure('Oops, there is no country with that name');
-    refs.countryListEl.innerHTML = "";
-    refs.countryInfoEl.innerHTML = "";
+  resetMarkup(refs.countryListEl);
+  resetMarkup(refs.countryInfoEl);
+  // refs.countryListEl.innerHTML = "";
+  //   refs.countryInfoEl.innerHTML = "";
 }
 
 function createMarkupList(countryList) {
-  const markupLi =  countryList.map(({ name, flags}) => `<li class="card-item">
+  const markup =  countryList.map(({ name, flags}) => `<li class="card-item">
   <div class="card-item__img">
     <img src="${flags.svg}" alt="${name.official}">
   </div>
     <p class="card-title">${name.official}</p>
-  </li>`)
-    refs.countryInfoEl.innerHTML = "";
-    refs.countryListEl.innerHTML = markupLi;
+  </li>`).join("")
+ resetMarkup(refs.countryInfoEl);
+    // refs.countryInfoEl.innerHTML = "";
+    createMarkup(refs.countryListEl, markup);
+    // refs.countryListEl.innerHTML = markup;
 }
 
 function createMarkup({ name, capital, population, flags, languages }) {
-    const lang = Object.values(languages);
+    console.log('lang', lang);
+  const lang = Object.values(languages);
     const markup = `<div class="card">
     <div class="card-img">
         <img src="${flags.svg}" alt="${name.official}">
@@ -90,12 +88,19 @@ function createMarkup({ name, capital, population, flags, languages }) {
         <p class="card-text">languages: ${lang}</p>
     </div>
     </div>`;
-    refs.countryListEl.innerHTML = "";
-    refs.countryInfoEl.innerHTML = markup;
+   console.log('markup', markup);
+  resetMarkup(refs.countryListEl);
+  createMarkup(refs.countryInfoEl, markup);
+    // refs.countryInfoEl.innerHTML = markup;
 }
 
 
-
+function resetMarkup(elem) {
+  elem.innerHTML = "";
+}
+function createMarkup(elem, markup) {
+  elem.innerHTML = markup;
+}
 
 
 //  https://restcountries.com/v2/all?fields=name.official,capital,population,flags.svg,languages
