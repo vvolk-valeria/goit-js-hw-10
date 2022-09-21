@@ -38,7 +38,7 @@ function onCountrySearch(e) {
 function onResponse(data) {
       if (data.length > 10) {
         messageInfo();
-      } else if (data.length >= 2 & data.length <= 10) {
+      } else if (data.length >= 2 && data.length <= 10) {
           createMarkupList(data);
       } else {
         // const countryObj = data[0];
@@ -98,8 +98,19 @@ function insertMarkup(elem, markup) {
 
 
 function messageFailure() {
-  Notify.failure('Oops, there is no country with that name', {timeout: 2000, width: '360px'});
+    getMessage('failure', 'Oops, there is no country with that name');
+    // Notify.failure('Oops, there is no country with that name', options);
 }
 function messageInfo() {
-    Notify.info('Too many matches found. Please enter a more specific name.', {timeout: 2000, width: '360px'});
+    getMessage('info', 'Too many matches found. Please enter a more specific name.');
+    // Notify.info('Too many matches found. Please enter a more specific name.', options);
+}
+
+function getMessage(type, text) {
+  Notify[type](text, options);
+}
+
+const options = {
+  timeout: 2000,
+  width: '360px'
 }
